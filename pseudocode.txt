@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+#Import Argparse to specify input filename. Input file must be a sam file sorted by leftmost mapping position (deafult sorting method with samtools).
+
+#According to python documentation, the most memory efficient, fastest, and simplest way to parse a large text file is to simply loop over the file object. The file object is created by using open(), but this does not read the entire file into memory - 
+#it essentially opens a data stream between the file and the python interpreter.
+
+input_sam_file = open("args.i", "r")
+
+
+#Defining functions
+
+
+#First, we need to save the header lines so that samtools can properly parse our output file. This can be done simply by writing a conditional statement to look for lines beginning with "@" then saving these lines and their corresponding line number in a dictionary. We can then
+#immediately write these header lines to the output file, then empty this dictionary. We don't need a function for this, but it's still an important chunk of code.
+
+for line in input_sam_file:
+    if line starts with "@", print to output_sam
+
+
+#Next, we need to import the alignment data from our sam file. We can't load the entire file into memory in many cases, so we need a function to only load a chunk of the alignments at a time.
+#By default, samtools sort sorts by chromosome, then leftmost mapping position. Thus, I think only importing one chromosome's alignments at a time would make the most sense here.
+
+def select_chromosome(sorted_sam_file: str) -> str:
+    '''Parses through input sam file and collects all alignments for a single chromosome at a time, storing lines into a list (or perhaps a more suitable data structure). Once deduplication is completed for current chromosome, empties list and iterates to next chromosome.'''
+        
+    return current_chromosome_alignments
+
+    example input (first iteration): 
+        NS500451:154:HWKTMBGXX:1:11101:17732:1263:CGCCTATT      0       2       30402279        36      71M     *       0       0       GGCTCCTGCTGTGAGAAGGGATGGGCTGGACTGGCTCTCTTCTCCATGGTTCATGGAGTGGATGATACATT 6<EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:24936:1293:TGAGTGAG      0       2       52159545        36      25M1086N46M     *       0       0       GTCCGATTGCTTCTTTATACTTGACCGAGCTAATGTGGTCCTGCGTTTGCTTCACTCTGAGCATCTCAGGC 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEA MD:Z:71 NH:i:1  HI:i:1  NM:i:0     SM:i:36 XQ:i:40 X2:i:0  XO:Z:UU XS:A:-  XG:Z:A
+        NS500451:154:HWKTMBGXX:1:11101:15723:1090:AGACACTC      0       3       52169122        36      42M679N29M      *       0       0       GTAGTGGCCTTTGCTCTTCTCATAGTTCTTCTTGTACTGGTAAGAACTGGCGAGCTGGCTTGTATTTAGGA /EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEA MD:Z:71 NH:i:1  HI:i:1  NM:i:0     SM:i:36 XQ:i:40 X2:i:0  XO:Z:UU XS:A:-  XG:Z:A
+        NS500451:154:HWKTMBGXX:1:11101:13771:2468:GGAATTGG      0       4       60763291        36      52M16388N19M    *       0       0       CTCTTTTTCTGTCCTCCATCCGCAAACTTGCACAGTAAAGGTTCTGTAGGAGCAGAAACTCCTGGTGGGGT 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0     SM:i:36 XQ:i:40 X2:i:0  XO:Z:UU XS:A:-  XG:Z:A
+    example output (first iteration):
+        NS500451:154:HWKTMBGXX:1:11101:17732:1263:CGCCTATT      0       2       30402279        36      71M     *       0       0       GGCTCCTGCTGTGAGAAGGGATGGGCTGGACTGGCTCTCTTCTCCATGGTTCATGGAGTGGATGATACATT 6<EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:24936:1293:TGAGTGAG      0       2       52159545        36      25M1086N46M     *       0       0       GTCCGATTGCTTCTTTATACTTGACCGAGCTAATGTGGTCCTGCGTTTGCTTCACTCTGAGCATCTCAGGC 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEA MD:Z:71 NH:i:1  HI:i:1  NM:i:0     SM:i:36 XQ:i:40 X2:i:0  XO:Z:UU XS:A:-  XG:Z:A
+
+
+#Once we have all alignments for a given chromosome, we can begin to sort duplicates. Duplicates that need to be discarded will have the same chromosome, leftmost starting position (except in the case of soft-clipping), and strand. Since we already know all
+#alignments fed into this function will be on the same chromosome, we can first an
+
+def check_unclipped_dupes(current_chromosome_alignments: list) -> list:
+    '''Iterates through current chromosome alignment list, first looking for unampped reads. Unmapped reads are discarded from list, then checks for alignments with identical starting positions. If multiple alignments share a starting position, then checks
+    bitwise flags for strandedness. If multiple alignments share a strand as well, then checks if UMIs are identical. If UMIs are indeed identical, then only one of these reads are kept, and the rest are discarded from alignment list. Also discards alignments
+    with UMIs of nonstandard length or that containing anything other than A, C, G, or T.'''
+    return current_chromosome_alignments_no_unclipped_dupes
+
+    example input:
+        NS500451:154:HWKTMBGXX:1:11101:89435:58226:TCGTAGGT     4       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:12354:25636:TCGTAGGT     16       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGG      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        
+
+    example output:
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:12354:25636:TCGTAGGT     16       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+
+
+
+
+#Now we need to check our current deduplicated list for soft clipped duplicates. Same rules as above apply, except now we cannot expect duplicates to share the same leftmost starting positions. Now, we must check the CIGAR strings of the alignments for any left-sided
+#soft clipping. If present, we need to subtract the number of left-sided soft clipped bases from the leftmost starting position. If we have alignments left in our list that are on the same strand, have the same UMI, AND share a the same starting position after accounting
+#for soft clipping, then we need to remove the duplicate alignments.
+
+def check_clipped_dupes(current_chromosome_alignments_no_unclipped_dupes: list) -> list:
+    '''Checks existing deduplicated alignment list for alignments with the same starting position when accounting for soft clipping, then strand position, then UMI. If all three are identical, only keeps one alignment in the output deduplicated list.'''
+    return current_chromosome_alignments_no_dupes
+
+    example input:
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708825        36      3S68M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      16       2       76708825        36      3S68M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGC      0       2       76708825        36      3S68M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:12354:25636:TCGTAGGT     16       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+
+    example output:
+        NS500451:154:HWKTMBGXX:1:11101:19377:1220:TCGTAGGT      0       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+        NS500451:154:HWKTMBGXX:1:11101:12354:25636:TCGTAGGT     16       2       76708822        36      71M     *       0       0       CCTGCTCATGGATACTCTTGAAGGATTGTCCAGTAAACTGGAAGCTGGTTTTGGAAGTTCCTCCTTCACCA 6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE MD:Z:71 NH:i:1  HI:i:1  NM:i:0  SM:i:36    XQ:i:40 X2:i:0  XO:Z:UU
+
+
+#Once we have our list of chromosome alignments with no duplicates, write them all to the output sam file.
+
+#Once we finish iterating through our input file, close the input file object.
+
