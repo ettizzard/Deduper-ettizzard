@@ -8,14 +8,13 @@
 input_sam_file = open("args.i", "r")
 
 
-#Defining functions
-
 
 #First, we need to save the header lines so that samtools can properly parse our output file. This can be done simply by writing a conditional statement to look for lines beginning with "@" then saving these lines and their corresponding line number in a dictionary. We can then
 #immediately write these header lines to the output file, then empty this dictionary. We don't need a function for this, but it's still an important chunk of code.
 
 for line in input_sam_file:
     if line starts with "@", print to output_sam
+
 
 
 #Next, we need to import the alignment data from our sam file. We can't load the entire file into memory in many cases, so we need a function to only load a chunk of the alignments at a time.
@@ -37,7 +36,7 @@ def select_chromosome(sorted_sam_file: str) -> str:
 
 
 #Once we have all alignments for a given chromosome, we can begin to sort duplicates. Duplicates that need to be discarded will have the same chromosome, leftmost starting position (except in the case of soft-clipping), and strand. Since we already know all
-#alignments fed into this function will be on the same chromosome, we can first an
+#alignments fed into this function will be on the same chromosome, we can focus on mapped reads with identical starting positions, strand, and UMIs.
 
 def check_unclipped_dupes(current_chromosome_alignments: list) -> list:
     '''Iterates through current chromosome alignment list, first looking for unampped reads. Unmapped reads are discarded from list, then checks for alignments with identical starting positions. If multiple alignments share a starting position, then checks
