@@ -1,0 +1,10 @@
+# Deduper Pseudocode Strategy
+
+## Define the Problem
+During standard library preparation procedures, we often encounter the issue of PCR duplicates. In this context, PCR duplicates are our DNA library molecules with abundance values inflated due to phenomena mostly out of our control, such as PCR bias. Thus, we cannot easily solve this issue during the wetlab library prep or sequencing steps, so we must bioinformatically normalize the relative abundances of our output reads due to the presence of these pesky PCR duplicates.
+
+This presents another problem. How do we distinguish between PCR duplicates and "real," biological reads? As it turns out, we really can't. What we can do, however, is detect when a read *has* been PCR duplicated by examining the Unique Molecular Identifer of all reads.
+
+For example, say we have "Read A" with a "UMI A". If our output sam file contains Read A mapping to the exact same alignment position within the genome multiple times - that is, the 5' end of the Read A maps to the same leftmost starting position on the same strand more than once - AND the all alignments of Read A have the *same UMI A*, then we know that Read A with UMI A was PCR duplicated. Since the reads are truly identical, we simply must only count 1 copy so as to avoid overrepresenting the amount of times Read A is mapped.
+
+Additionally, we must account for another quirk of sequence mapping - soft clipping. Soft clipping occurs when bases on either end of the mapped read *do not* map to the beginning or end bases of the template read. We must be able to detect and adjust for soft clipping, because Read A could potentially map multiple times due to PCR duplication, and some of these duplicates have the potential to soft clip. In the case of soft clipping, Read A's given 5' leftmost starting position could shift. For example, let's say Read A maps at position 150. After noticing multiple instances of Read A mapping with the same UMI A, we also notice that some of these alignments don't start at position 150, but instead start at position 153. These alignments at 153 are also Read A: UMI A duplicates which we must exclude from abundance counts.
