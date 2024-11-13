@@ -1,0 +1,31 @@
+Lines 1-26: Header Lines
+
+Line 27: normal chr1 read
+
+Line 28: unmapped chr2 read (shouldn't exist given assignmnent prompt, but wanted to be sure it wouldn't cause issues)
+
+Line 29: normal chr3 read with realistic CIGAR(no soft-clipping)
+
+Line 30: normal chr3 read with realistic CIGAR(no soft-clipping)
+
+Line 31: normal chr3 read with simple CIGAR
+
+Line 32: negative strand chr3 read with simple CIGAR
+
+Line 33: negative strand chr3 read with same UMI and given starting position as Line 32, but includes a CIGAR with soft-clipping;
+since the soft-clipping alters the true starting position, this is not a PCR duplicate and thus appears in the output file
+
+Line 34: simple PCR duplicate of Line 31 (no soft-clipping) - not present in output file
+
+Line 35: normal chr4 read
+
+Line 36: complex PCR duplicate of Line 35; has same UMI but different starting position from Line 35, but the soft-clipping in the CIGAR string
+makes this read a duplicate that is thus filtered from the output file
+
+Line 37: chr4 read with unknown UMI - not in output file
+
+Line 38: normal chr5 read
+
+Line 39: chr5 read with unknown UMI - filtered out of output file
+
+Line 40: normal chr6 read
