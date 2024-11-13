@@ -103,6 +103,7 @@ neg_strand_umi_true_position_set = set()
 
 #Initializing variables to start iterating over chromosomes
 chromosome_label = "1"
+count_of_reads_per_chromosome = 0
 
 with open(args.outfile, "w") as output_sam:
 
@@ -126,14 +127,17 @@ with open(args.outfile, "w") as output_sam:
                 split_line = line.split('\t')
                 UMI = split_line[0].split(':')[-1]
                 
-                #If the current line's chromosome does not match the currently iterated chromosome label, empty the UMI sets for each strand,
-                #then set chromosome label to current line's value.
+                #If the current line's chromosome does not match the currently iterated chromosome label, empty the UMI sets for each strand, print the currently iterated
+                #chromosome and its count of reads, then set chromosome label to current line's new value and reset count to 0.
                 if chromosome_label != split_line[2]:
                     
                     pos_strand_umi_true_position_set = set()
                     neg_strand_umi_true_position_set = set()
+
+                    print(f"{chromosome_label}\t{count_of_reads_per_chromosome}")
                     
                     chromosome_label = split_line[2]
+                    count_of_reads_per_chromosome = 0
                 
                 #If the current line's UMI is in the overall set of UMIs, determine the strand and true starting position of the read
                 if UMI in set_of_UMIs:
@@ -144,21 +148,23 @@ with open(args.outfile, "w") as output_sam:
                     if strand == '+': 
                         
                         #If the current line's UMI and true starting postion pair has not been encountered yet, the read is not duplicated and will be written to file.
-                        #The UMI-true position pair will then be added to the set
+                        #The UMI-true position pair will then be added to the set, and the current chromosome read count will be incremented.
                         if(UMI,true_position) not in pos_strand_umi_true_position_set:
                             output_sam.write(line)
                             pos_strand_umi_true_position_set.add((UMI,true_position))
                             unique_read_count += 1
+                            count_of_reads_per_chromosome += 1
                         
                         #Otherwise, a duplicate has been encountered
                         else:
                             duplicate_count += 1
                     
-                    #If on the negative strand, and a duplicate is not encountered, write line to file, add UMI-true position pair to negative set
+                    #If on the negative strand, and a duplicate is not encountered, write line to file, add UMI-true position pair to negative set, and increment chromosome read counter
                     elif (UMI,true_position) not in neg_strand_umi_true_position_set:
                         output_sam.write(line)
                         neg_strand_umi_true_position_set.add((UMI,true_position))
                         unique_read_count += 1
+                        count_of_reads_per_chromosome += 1
                     
                     #Otherwise a negative strand duplicate is encountered and counted
                     else:
@@ -166,10 +172,13 @@ with open(args.outfile, "w") as output_sam:
                 
                 #If read's UMI is not known from original set, read is not written to file.
                 else:
-                    unknown_UMI_count += 1   
+                    unknown_UMI_count += 1
+        
+        #print statement for final chromosome count after main loop ends
+        print(f"{chromosome_label}\t{count_of_reads_per_chromosome}")
 
 #Final stat print statements
 print(f"Number of SAM header lines: {header_linecount}")
 print(f"Number of unique reads in output SAM file: {unique_read_count}")
-print(f"Number of PCR duplicated reads: {duplicate_count}")
 print(f"Number of reads with unknown UMIs: {unknown_UMI_count}")
+print(f"Number of PCR duplicated reads: {duplicate_count}")
