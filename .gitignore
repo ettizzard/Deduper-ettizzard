@@ -2,3 +2,6 @@ giant_test.bam
 giant_test.sam
 giant_script_testing.sam
 script_testing.sam
+survey_output.sam
+sorted_survey_input.bam
+sorted_survey_input.sam
